@@ -1,0 +1,16 @@
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.venv
+.ruff_cache/
+.pytest_cache/
+.env
+data/*
+!data/databases/
+data/databases/*
+!data/databases/*.json
+node_modules/
+web/dist/

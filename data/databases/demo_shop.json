@@ -1,0 +1,11 @@
+{
+  "title": "Demo shop",
+  "description": "A made-up coffee and kitchen shop with six stores and an online shop. Orders from 2024 and 2025, with order items and returns. Prices in euros.",
+  "examples": [
+    "Which ten products sold the most units?",
+    "What is the revenue per month?",
+    "Which store has the most returns?",
+    "Which category brings in the most revenue?",
+    "Write a report on sales by store in 2025."
+  ]
+}

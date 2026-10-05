@@ -1,0 +1,42 @@
+name: nodestep
+
+services:
+  nodeartifact:
+    build:
+      context: ../..
+      dockerfile: nodeartifact/docker/Dockerfile
+    image: nodeartifact:local
+    ports:
+      - "127.0.0.1:4318:4318"
+    volumes:
+      - nodeartifact-data:/data
+    healthcheck:
+      start_period: 20s
+      start_interval: 1s
+
+  text-to-sql-demo:
+    build:
+      context: ../..
+      dockerfile: text-to-sql-demo/docker/Dockerfile
+    image: text-to-sql-demo:local
+    env_file:
+      - path: ../.env
+        required: false
+    environment:
+      TEXT_TO_SQL_DEMO_DATA_DIR: /data
+      TEXT_TO_SQL_DEMO_WEB_DIST: /app/web/dist
+      TEXT_TO_SQL_DEMO_OTLP_ENDPOINT: http://nodeartifact:4318
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - text-to-sql-demo-data:/data
+    depends_on:
+      nodeartifact:
+        condition: service_healthy
+    healthcheck:
+      start_period: 20s
+      start_interval: 1s
+
+volumes:
+  nodeartifact-data:
+  text-to-sql-demo-data:

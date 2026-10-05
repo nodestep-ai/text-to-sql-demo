@@ -1,0 +1,84 @@
+[project]
+name = "text-to-sql-demo"
+version = "0.1.0a1"
+description = "A reference app: a text-to-SQL agent built on nodestep that shows the SQL and the result of every answer (alpha)"
+authors = [
+  {name = 'Marek Filo', email = 'mrf.software@pm.me'}
+]
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+keywords = ["text-to-sql", "sqlite", "agents", "llm", "nodestep"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Database :: Front-Ends",
+]
+dependencies = [
+    "fastapi==0.141.1",
+    "nodestep[openai] @ git+https://github.com/nodestep-ai/nodestep",
+    "nodeartifact @ git+https://github.com/nodestep-ai/nodeartifact",
+    "pydantic-settings==2.15.0",
+    "sqlglot==30.19.0",
+    "typer==0.27.2",
+    "uvicorn==0.53.0",
+]
+
+[project.scripts]
+text-to-sql-demo = "text_to_sql_demo.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/nodestep-ai/text-to-sql-demo"
+Source = "https://github.com/nodestep-ai/text-to-sql-demo"
+Changelog = "https://github.com/nodestep-ai/text-to-sql-demo/blob/main/CHANGELOG.md"
+Issues = "https://github.com/nodestep-ai/text-to-sql-demo/issues"
+
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "httpx==0.28.1",
+    "pytest==9.0.3",
+    "pytest-asyncio==1.3.0",
+    "ruff==0.16.9",
+    "ty==0.0.84",
+]
+
+constraint-dependencies = ["openai==2.38.0", "jiter==0.15.0"]
+
+[tool.uv]
+override-dependencies = ["nodestep[openai]"]
+
+[tool.uv.sources]
+nodestep = { path = "../nodestep", editable = true }
+nodeartifact = { path = "../nodeartifact", editable = true }
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/text_to_sql_demo"]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["web/.svelte-check", "web/node_modules", "web/dist"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["scripts", "tests"]
+addopts = ["--import-mode=importlib"]
+filterwarnings = [
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated:UserWarning",
+    "ignore:The anyio.abc.BlockingPortal alias is deprecated:DeprecationWarning",
+]
+
+[tool.ty.environment]
+extra-paths = ["scripts", "tests"]

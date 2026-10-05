@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, python: "3.12" }
+          - { os: ubuntu-latest, python: "3.13" }
+          - { os: ubuntu-latest, python: "3.14" }
+          - { os: windows-latest, python: "3.13" }
+          - { os: macos-latest, python: "3.13" }
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: text-to-sql-demo
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: text-to-sql-demo
+          persist-credentials: false
+      - name: Check out nodestep next to text-to-sql-demo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: nodestep-ai/nodestep
+          ref: ${{ github.base_ref || github.ref_name }}
+          token: ${{ secrets.SIBLING_CHECKOUT_TOKEN || github.token }}
+          path: nodestep
+          persist-credentials: false
+      - name: Check out nodeartifact next to text-to-sql-demo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: nodestep-ai/nodeartifact
+          ref: ${{ github.base_ref || github.ref_name }}
+          token: ${{ secrets.SIBLING_CHECKOUT_TOKEN || github.token }}
+          path: nodeartifact
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.17"
+          python-version: ${{ matrix.python }}
+          enable-cache: false
+      - run: uv sync --locked --all-extras
+      - run: uv run --no-sync ruff check .
+      - run: uv run --no-sync ruff format --check .
+      - run: uv run --no-sync ty check .
+      - run: uv run --no-sync pytest -q
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.17"
+          enable-cache: false
+      - run: uv build
+      - name: Let git fetch the private nodestep-ai repositories
+        env:
+          TOKEN: ${{ secrets.SIBLING_CHECKOUT_TOKEN }}
+        run: |
+          if [ -n "$TOKEN" ]; then
+            git config --global url."https://x-access-token:${TOKEN}@github.com/nodestep-ai/".insteadOf "https://github.com/nodestep-ai/"
+          fi
+      - run: uv venv --python 3.12 "$RUNNER_TEMP/smoke"
+      - run: uv pip install --no-config --python "$RUNNER_TEMP/smoke" dist/*.whl
+      - run: '"$RUNNER_TEMP/smoke/bin/python" -c "import text_to_sql_demo.app, text_to_sql_demo.cli"'
+      - run: '"$RUNNER_TEMP/smoke/bin/text-to-sql-demo" --help'
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: text-to-sql-demo/web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: text-to-sql-demo
+          persist-credentials: false
+      - name: Check out nodestep-stylesheet next to text-to-sql-demo
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: nodestep-ai/nodestep-stylesheet
+          ref: ${{ github.base_ref || github.ref_name }}
+          token: ${{ secrets.SIBLING_CHECKOUT_TOKEN || github.token }}
+          path: nodestep-stylesheet
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24"
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npm run check
+      - run: npm run build

@@ -1,0 +1,23 @@
+{
+ "name": "text-to-sql-demo-web",
+ "private": true,
+ "type": "module",
+ "engines": {
+  "node": ">=22.18"
+ },
+ "scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "check": "svelte-check --tsgo",
+  "test": "node --test --test-reporter=spec \"tests/**/*.test.js\""
+ },
+ "devDependencies": {
+  "@sveltejs/vite-plugin-svelte": "7.3.0",
+  "@tsconfig/svelte": "5.0.8",
+  "@typescript/native": "npm:typescript@7.0.2",
+  "svelte": "5.57.1",
+  "svelte-check": "4.7.6",
+  "typescript": "6.0.3",
+  "vite": "8.3.0"
+ }
+}
